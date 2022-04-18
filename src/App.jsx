@@ -1,82 +1,13 @@
 import './App.css';
 
 import { useMachine } from '@xstate/react';
-import { createMachine, assign } from 'xstate';
+import { modalWithVideoMachine } from './machines/modalMachine'
 
 import { Modal, Button } from 'antd';
-import { CaretRightFilled, ShrinkOutlined, PauseOutlined, ArrowsAltOutlined } from '@ant-design/icons';
+import { CaretRightFilled, ShrinkOutlined, PauseOutlined, ArrowsAltOutlined, PlayCircleOutlined } from '@ant-design/icons';
 
 import ReactPlayer from 'react-player';
 
-
-const modalWithVideoMachine = createMachine({
-  id: 'modalWithVideo',
-  initial: 'closed',
-  context: { playingVideo: false, fullscreen: false },
-  states: {
-    closed: {
-      on: {
-        OPEN_MODAL: {
-          target: 'opened',
-          actions: 'playVideo'
-        }
-      }
-    },
-    opened: {
-      type: 'parallel',
-      states: {
-        size: {
-          initial: 'default',
-          states: {
-            default: {
-              on: {
-                TOGGLE_SMALLER: 'smaller',
-              }
-            },
-            smaller: {
-              on: {
-                TOGGLE_DEFAULT: 'default'
-              }
-            }
-          }
-        },
-        player: {
-          initial: 'play',
-          states: {
-            play: {
-              on: {
-                TOGGLE_PAUSE: {
-                  target: 'pause',
-                  actions: 'pauseVideo'
-                },
-              }
-            },
-            pause: {
-              on: {
-                TOGGLE_PLAY: {
-                  target: 'play',
-                  actions: 'playVideo'
-                }
-              }
-            }
-          }
-        },
-      },
-      on: {
-        CLOSE_MODAL: {
-          target: 'closed',
-          actions: 'pauseVideo'
-        }
-      }
-    }
-  },
-},
-  {
-    actions: {
-      playVideo: assign({ playingVideo: (context) => context.playingVideo = true }),
-      pauseVideo: assign({ playingVideo: (context) => context.playingVideo = false }),
-    }
-  });
 
 function App() {
 
@@ -84,40 +15,38 @@ function App() {
 
   let playingVideo = state?.context?.playingVideo;
   let visible = state?.value?.opened
-  let size = state?.value?.opened?.size === 'default';
+  let defaultSize = state?.value?.opened?.size === 'default';
 
   const handleCancel = () => {
-    // at first pause video
+    // at first pause the video before the component is umounted
     send('TOGGLE_PAUSE');
-    // then close modal
+    // then close modal over 100 ms
     setTimeout(() => {
       send('CLOSE_MODAL');
     }, 100);
   };
 
-
   return (
 
     <div className="App">
 
-      <Button type="primary" onClick={() => send('OPEN_MODAL')}>
-        PLAY VIDEO
-      </Button>
+      <div className='closed-modal'>
+        <PlayCircleOutlined className='playing-icon' onClick={() => send('OPEN_MODAL')} />
+      </div>
 
       <Modal
         title="PLAYER"
-        centered
         visible={visible ? true : false}
         onCancel={handleCancel}
-        width={size ? 1000 : 500}
-        height={size ? 700: 300}
+        style={{ margin: '5vh auto auto' }}
+        width={defaultSize ? 1000 : 500}
         footer={[
-          
+
           <Button
             key='screen-size'
-            onClick={() => send(size ? 'TOGGLE_SMALLER' : 'TOGGLE_DEFAULT')}
+            onClick={() => send(defaultSize ? 'TOGGLE_SMALLER' : 'TOGGLE_DEFAULT')}
             shape='circle'
-            icon={size ? <ShrinkOutlined /> : <ArrowsAltOutlined />}
+            icon={defaultSize ? <ShrinkOutlined /> : <ArrowsAltOutlined />}
           />,
 
           <Button
@@ -135,7 +64,9 @@ function App() {
           height='100%'
           loop={true}
         />
+
       </Modal>
+
     </div>
   );
 }

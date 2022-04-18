@@ -3,3 +3,19 @@
 .App {
   text-align: center;
 }
+
+.closed-modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #8585ff;
+  border-radius: 5px;
+  height: 150px;
+  width: 300px;
+  margin: 25vh auto auto
+}
+
+.playing-icon {
+  font-size: 50px;
+  color: #8585ff
+}
